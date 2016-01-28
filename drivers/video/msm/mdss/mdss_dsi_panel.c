@@ -26,6 +26,7 @@
 #include <linux/msm_mdp.h>
 #include <linux/panel_notifier.h>
 
+#include <linux/display_state.h>
 
 #include "mdss_dsi.h"
 #include "mdss_debug.h"
@@ -50,6 +51,13 @@ DEFINE_LED_TRIGGER(bl_led_trigger);
 #ifdef CONFIG_LAZYPLUG
 extern void lazyplug_enter_lazy(bool enter, bool video);
 #endif
+
+bool display_on = true;
+
+bool is_display_on()
+{
+	return display_on;
+}
 
 void mdss_dsi_panel_pwm_cfg(struct mdss_dsi_ctrl_pdata *ctrl)
 {
@@ -1100,6 +1108,11 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 	lazyplug_enter_lazy(false, false);
 #endif
 
+	/* Ensure low persistence is disabled */
+	//mdss_dsi_panel_apply_display_setting(pdata, 0);
+
+	display_on = true;
+
 	pinfo = &pdata->panel_info;
 	ctrl = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 				panel_data);
@@ -1289,6 +1302,8 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 #ifdef CONFIG_LAZYPLUG
 	lazyplug_enter_lazy(true, false);
 #endif
+
+	display_on = false;
 
 end:
 	/* clear idle state */
